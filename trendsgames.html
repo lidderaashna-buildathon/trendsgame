@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Trend Pehchano</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--bg:#1a0b2e;--card:#2a1450;--ink:#fff;--muted:#cbb8f0;--pink:#ff3e8a;--yellow:#ffd23f;--green:#2ee59d;--line:rgba(255,255,255,.15)}
+@media (prefers-color-scheme: light){:root:not([data-theme="light"]){--bg:#1a0b2e}}
+:root[data-theme="dark"]{--bg:#1a0b2e}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 20% 10%,#4b1d8f 0,var(--bg) 60%);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;overflow-x:hidden}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px;min-height:100vh;display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-weight:900;font-size:clamp(20px,3vw,32px);letter-spacing:.5px}
+.brand span{color:var(--pink)}
+.pill{background:var(--card);border:1px solid var(--line);padding:6px 14px;border-radius:999px;font-weight:700;font-size:clamp(14px,1.8vw,20px)}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:20px 0}
+.emoji{font-size:clamp(70px,13vw,170px);line-height:1.1;letter-spacing:8px}
+.q{font-size:clamp(22px,3.4vw,42px);font-weight:800;color:var(--yellow)}
+.hints{display:flex;flex-direction:column;gap:10px;width:100%;max-width:860px}
+.hint{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 18px;font-size:clamp(18px,2.6vw,30px);font-weight:600;opacity:0;transform:translateY(10px);transition:.35s}
+.hint.on{opacity:1;transform:none}
+.answer{display:none;flex-direction:column;gap:12px;align-items:center}
+.answer.on{display:flex;animation:pop .45s ease}
+.ans{font-size:clamp(36px,6.5vw,84px);font-weight:900;background:linear-gradient(90deg,var(--pink),var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.twist{background:rgba(46,229,157,.12);border:2px solid var(--green);border-radius:16px;padding:12px 20px;font-size:clamp(17px,2.4vw,28px);max-width:900px}
+.twist b{color:var(--green)}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+.timer{font-size:clamp(40px,7vw,90px);font-weight:900;font-variant-numeric:tabular-nums}
+.timer.low{color:var(--pink);animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.1)}}
+.bar{height:10px;width:100%;max-width:700px;background:var(--line);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--yellow),var(--pink));width:100%;transition:width .25s linear}
+.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+button{font:inherit;font-weight:800;font-size:clamp(14px,1.8vw,20px);border:0;border-radius:12px;padding:12px 20px;cursor:pointer;background:var(--card);color:var(--ink);border:1px solid var(--line)}
+button.main{background:var(--pink)}
+button.rev{background:var(--yellow);color:#1a0b2e}
+button:hover{filter:brightness(1.15)}
+.keys{color:var(--muted);font-size:13px;text-align:center;margin-top:6px}
+.chat{font-size:clamp(16px,2.2vw,24px);color:var(--muted)}
+.chat b{color:#fff}
+.intro h1{font-size:clamp(44px,9vw,120px);margin:0;font-weight:900;line-height:1}
+.intro h1 span{color:var(--pink)}
+.rules{font-size:clamp(18px,2.5vw,28px);line-height:1.6;max-width:820px}
+.score{position:fixed;right:16px;bottom:16px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;min-width:200px;max-width:280px;font-size:15px;z-index:5}
+.score h3{margin:0 0 6px;font-size:15px;color:var(--yellow);display:flex;justify-content:space-between;cursor:pointer}
+.score ol{margin:0;padding-left:20px;max-height:200px;overflow:auto}
+.score li{display:flex;justify-content:space-between;gap:8px}
+.score li span:last-child{font-weight:800;color:var(--green)}
+.score input{width:100%;margin-top:8px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:#fff;font:inherit}
+.score.min ol,.score.min input,.score.min small{display:none}
+.score small{color:var(--muted);font-size:11px}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:4}
+.confetti i{position:absolute;top:-20px;width:10px;height:16px;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+@media (max-width:640px){.score{position:static;margin-top:12px;max-width:none}}
+</style>
+</head><body>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">🔥 Trend <span>Pehchano</span></div>
+    <div class="pill" id="round">Intro</div>
+  </div>
+  <div class="stage" id="stage"></div>
+  <div class="controls" id="controls"></div>
+  <div class="keys">A = auto-play on/off · M = music on/off · Space = timer start/pause · H = next hint · R = reveal · → next · ← back · F = fullscreen</div>
+</div>
+
+<div class="score" id="score">
+  <h3 id="scoreH"><span>🏆 Leaderboard</span><span id="tog">–</span></h3>
+  <ol id="list"></ol>
+  <input id="nm" placeholder="Winner ka naam likho + Enter">
+  <small>"Riya" = +10 · "Riya 5" = +5 · same naam = points add</small>
+</div>
+<div class="confetti" id="conf"></div>
+
+<script>
+const R=[
+ {e:"💄👗🪞➡️📸",h:["Mirror ke saamne baith ke baatein + makeup","Ready hote hote poori story suna dete hain","Title mein 4 letters, G se shuru 😉"],a:"GRWM (Get Ready With Me)",t:"Meesho ka ₹199 kajal + ₹349 kurti — <b>GRWM for office party under ₹600</b>"},
+ {e:"💃🕺🎵🔁",h:["Sab log same gaane pe same steps karte hain","Beat pe ek signature move","Reels ka sabse popular trend — ___ trend"],a:"Dance Trend",t:"Meesho outfit pehen ke trending steps karo — <b>caption mein 'outfit from Meesho' likho</b>"},
+ {e:"🤩➡️😅",h:["Online photo vs ghar pe aaya parcel","Split screen, left side perfect, right side… 😬","Do words: ___ vs ___"],a:"Expectation vs Reality",t:"Twist it: <b>Expectation = Reality</b> — Meesho order jo bilkul photo jaisa nikla ✅"},
+ {e:"👕👏✨👗",h:["Ek clap / jump / hand swipe…","…aur sab kuch badal gaya — look, jagah, sab!","Editing ka jaadu, beat drop pe"],a:"Transition Reel",t:"Ghar wale kapdon se <b>Meesho party look</b> mein 1 jump transition 🕺"},
+ {e:"☀️☕🚌💻🌙",h:["Subah se raat tak ka vlog","Chhote chhote clips, aesthetic music","'A ___ in my life'"],a:"Day in My Life",t:"<b>Day in my life as a Meesho Brand Ambassador</b> — content, shoot, unboxing!"},
+ {e:"🛍️💸2️⃣9️⃣9️⃣",h:["Budget flex, sasta par stylish","Har item ke saath price tag dikhate hain","'Things I bought under ₹___'"],a:"Things Under ₹299",t:"Meesho pe sabse easy: <b>5 cheezein under ₹299</b> — earrings, tops, home decor"},
+ {e:"📦📦📦😍",h:["Bahut saare parcels ek saath","Ek ek khol ke try on","Comments mein 'rate my ___'"],a:"Haul / Rate My Haul",t:"<b>Meesho Diwali haul</b> — audience se 1-10 rating maango, engagement 🔝"},
+ {e:"🐛➡️🦋",h:["Before vs After","Purani photo vs aaj","Do words, 'Glow ___'"],a:"Glow-Up",t:"<b>₹500 glow-up challenge</b> — sirf Meesho products se pura look"},
+ {e:"🤫👍👎📦",h:["Ek bhi word nahi bolte","Sirf expressions aur thumbs up/down","'___ Review'"],a:"Silent Review",t:"<b>Silent review of my Meesho order</b> — expressions bolenge sab 😂"},
+ {e:"1️⃣👖➡️3️⃣✨",h:["Ek hi cheez, alag alag look","Office, college, party","'3 ways to ___ one ___'"],a:"3 Ways to Style One Item",t:"<b>1 Meesho dupatta, 3 looks</b> — saree drape, kurti, scarf"},
+ {e:"📦✂️🔊🎧",h:["Earphones lagao, awaaz suno","Tape tearing, crinkle crinkle…","Unboxing + 4 letter word"],a:"Unboxing ASMR",t:"<b>Meesho parcel ASMR unboxing</b> — no talking, sirf satisfying sounds"},
+ {e:"👩‍🦱😲🤣📱",h:["Ghar ka ek special member star hai","Unko kuch dikhao, reaction record karo","'___ reacts to my outfit'"],a:"Mom Reacts",t:"<b>Mummy guesses my Meesho outfit price</b> — 'itna sasta?!' 😱"}
+];
+let i=-1,hint=0,rev=false,T=18,left=T,run=false,tick=null,actx=null,auto=false,nxt=null;
+const $=s=>document.getElementById(s);
+let scores={};try{scores=JSON.parse(localStorage.getItem("tp_scores")||"{}")}catch(e){}
+function save(){try{localStorage.setItem("tp_scores",JSON.stringify(scores))}catch(e){}}
+function beep(f,d){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);g.gain.setValueAtTime(.15,actx.currentTime);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);o.start();o.stop(actx.currentTime+d)}catch(e){}}
+function stop(){clearInterval(tick);run=false}
+function render(){
+ stop();clearTimeout(nxt);left=T;
+ const st=$("stage"),c=$("controls");
+ if(i<0){$("round").textContent="Intro";
+  st.innerHTML=`<div class="intro"><h1>Trend <span>Pehchano!</span> 🔥</h1></div>
+  <div class="rules">📱 Emojis dekho → trend guess karo<br>💬 Answer <b>Meet chat</b> mein likho<br>⚡ Sabse pehle sahi = <b>10 points</b><br>⏱️ Har round 18 seconds</div>`;
+  c.innerHTML=`<button class="main" onclick="startMusic();auto=true;go(1)">🤖 Auto-play (5 min, hands-free)</button><button onclick="startMusic();auto=false;go(1)">Manual ▶</button><button id="mb" onclick="toggleMusic()">🎵 Music on</button>`;updMusBtn();return}
+ if(i>=R.length){$("round").textContent="Finale";
+  const top=Object.entries(scores).sort((a,b)=>b[1]-a[1]).slice(0,3);const m=["🥇","🥈","🥉"];
+  st.innerHTML=`<div class="intro"><h1>Trend <span>Masters</span> 👑</h1></div>
+  <div class="rules">${top.length?top.map((x,k)=>`${m[k]} <b>${x[0]}</b> — ${x[1]} pts`).join("<br>"):"Sab champions ho aaj! 🙌"}</div>
+  <div class="twist">Ab in trends ko <b>Meesho products ke saath</b> try karo aur tag karo — best reel ko shoutout milega! 🎉</div>`;
+  c.innerHTML=`<button onclick="go(-1)">◀ Back</button>`;confetti();return}
+ const r=R[i];hint=0;rev=false;$("round").textContent=`${auto?"🤖 AUTO · ":""}Round ${i+1} / ${R.length}`;
+ st.innerHTML=`<div class="emoji">${r.e}</div><div class="q">Kaunsa trend hai ye? 🤔</div>
+ <div class="timer" id="tm">${T}</div><div class="bar"><i id="br"></i></div>
+ <div class="hints">${r.h.map((x,k)=>`<div class="hint" id="h${k}">💡 ${x}</div>`).join("")}</div>
+ <div class="answer" id="ans"><div class="ans">${r.a}</div><div class="twist">🛍️ Meesho twist: ${r.t}</div></div>
+ <div class="chat" id="ch">💬 Chat mein type karo <b>abhi!</b></div>`;
+ c.innerHTML=`<button onclick="go(-1)">◀</button><button class="main" id="tb" onclick="toggle()">⏱ Start timer</button><button onclick="nextHint()">💡 Hint</button><button class="rev" onclick="reveal()">🎉 Reveal</button><button onclick="go(1)">Next ▶</button><button onclick="auto=!auto;render()">${auto?"⏹ Stop auto":"🤖 Auto"}</button><button id="mb" onclick="toggleMusic()">🎵</button>`;updMusBtn();
+ if(auto)nxt=setTimeout(toggle,1500);
+}
+function go(d){i=Math.max(-1,Math.min(R.length,i+d));render()}
+function toggle(){if(i<0||i>=R.length||rev)return;if(run){stop();$("tb").textContent="▶ Resume";return}
+ run=true;$("tb").textContent="⏸ Pause";beep(660,.12);
+ tick=setInterval(()=>{left--;const tm=$("tm");tm.textContent=left;$("br").style.width=(left/T*100)+"%";
+  if(left==14||left==8)nextHint();
+  if(left<=5){tm.classList.add("low");beep(880,.08)}
+  if(left<=0){stop();reveal()}},1000)}
+function nextHint(){if(i<0||i>=R.length)return;const h=$("h"+hint);if(h){h.classList.add("on");hint++}}
+function reveal(){if(i<0||i>=R.length||rev)return;stop();rev=true;for(let k=0;k<3;k++)$("h"+k).classList.add("on");
+ $("ans").classList.add("on");$("ch").innerHTML="👏 Sahi answer kisne diya? Naam leaderboard mein daalo!";
+ $("tm").classList.remove("low");beep(523,.15);setTimeout(()=>beep(784,.25),150);confetti();
+ if(auto)nxt=setTimeout(()=>go(1),7000)}
+function confetti(){const c=$("conf"),col=["#ff3e8a","#ffd23f","#2ee59d","#7aa2ff","#fff"];
+ for(let k=0;k<70;k++){const p=document.createElement("i");p.style.left=Math.random()*100+"vw";p.style.background=col[k%5];
+  p.style.animationDuration=(1.5+Math.random()*2)+"s";p.style.animationDelay=Math.random()*.4+"s";c.appendChild(p);setTimeout(()=>p.remove(),4200)}}
+function drawScores(){const l=$("list");const e=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+ l.innerHTML=e.length?e.map(([n,s])=>`<li><span>${n.replace(/</g,"&lt;")}</span><span>${s}</span></li>`).join(""):"<li style='color:var(--muted)'>Abhi koi nahi…</li>"}
+$("nm").addEventListener("keydown",ev=>{ev.stopPropagation();if(ev.key==="Enter"){let n=ev.target.value.trim(),p=10;const mm=n.match(/^(.*?)\s+(-?\d+)$/);if(mm){n=mm[1].trim();p=+mm[2]}if(n){scores[n]=(scores[n]||0)+p;save();drawScores();ev.target.value="";beep(700,.1)}}});
+$("scoreH").onclick=()=>{$("score").classList.toggle("min");$("tog").textContent=$("score").classList.contains("min")?"+":"–"};
+$("scoreH").ondblclick=()=>{if(confirm("Leaderboard reset karein?")){scores={};save();drawScores()}};
+document.addEventListener("keydown",ev=>{if(ev.target.tagName==="INPUT")return;const k=ev.key.toLowerCase();
+ if(k===" "){ev.preventDefault();i<0?(startMusic(),go(1)):toggle()}else if(k==="arrowright")go(1);else if(k==="arrowleft")go(-1);
+ else if(k==="a"){auto=!auto;render()}
+ else if(k==="h")nextHint();else if(k==="r")reveal();else if(k==="f"){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}});
+// ---- Background music: original synth loop made in the browser (no audio files, no copyright) ----
+let mus={on:false,step:0,next:0,timer:null,master:null};
+const BPM=116,SPB=60/BPM/2; // 8th notes
+const CH=[[48,55,60,64],[43,50,55,59],[45,52,57,60],[41,48,53,57]]; // C G Am F
+const mf=n=>440*Math.pow(2,(n-69)/12);
+function ac(){actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();return actx}
+function note(f,t,d,type,v){const a=ac(),o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.value=f;o.connect(g);g.connect(mus.master);
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d+.02)}
+function kick(t){const a=ac(),o=a.createOscillator(),g=a.createGain();o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(40,t+.12);
+ g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.18);o.connect(g);g.connect(mus.master);o.start(t);o.stop(t+.2)}
+let nb=null;function hat(t,v){const a=ac();if(!nb){nb=a.createBuffer(1,a.sampleRate*.05,a.sampleRate);const d=nb.getChannelData(0);for(let k=0;k<d.length;k++)d[k]=Math.random()*2-1}
+ const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=nb;f.type="highpass";f.frequency.value=7000;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);
+ s.connect(f);f.connect(g);g.connect(mus.master);s.start(t)}
+function sched(){const a=ac();while(mus.next<a.currentTime+.12){const s=mus.step%32,c=CH[Math.floor(s/8)],t=mus.next;
+  if(s%2===0)kick(t);
+  hat(t,s%2?.25:.08);
+  note(mf(c[0]-12),t,SPB*.9,"triangle",.35);
+  const arp=[c[1],c[2],c[3],c[2]+12][s%4];note(mf(arp+12),t,SPB*.8,"square",.05);
+  if(s%8===0)c.slice(1).forEach(n=>note(mf(n+12),t,SPB*7,"sine",.06));
+  mus.next+=SPB;mus.step++}}
+function startMusic(){if(mus.on)return;const a=ac();mus.master=a.createGain();mus.master.gain.value=.35;mus.master.connect(a.destination);
+ mus.on=true;mus.next=a.currentTime+.05;mus.timer=setInterval(sched,25);updMusBtn()}
+function stopMusic(){if(!mus.on)return;clearInterval(mus.timer);mus.master.disconnect();mus.on=false;updMusBtn()}
+function toggleMusic(){mus.on?stopMusic():startMusic()}
+function duck(v){if(mus.on&&mus.master)mus.master.gain.setTargetAtTime(v,ac().currentTime,.1)}
+function updMusBtn(){const b=$("mb");if(b)b.textContent=mus.on?"🔇 Music off":"🎵 Music on"}
+const _rev=reveal;reveal=function(){if(i>=0&&i<R.length&&!rev){duck(.12);setTimeout(()=>duck(.35),3500)}_rev()};
+document.addEventListener("keydown",ev=>{if(ev.target.tagName!=="INPUT"&&ev.key.toLowerCase()==="m")toggleMusic()});
+drawScores();render();
+</script>
+</body></html>
